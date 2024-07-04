@@ -3,11 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Http\Requests\ResetPasswordRequest;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Password;
+
 
 class AuthController extends Controller
 {
@@ -38,4 +45,31 @@ class AuthController extends Controller
         return response()->json('ログイン失敗しました。',Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
+    #ログアウト
+    public function logout(Request $request):RedirectResponse{
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/');
+    }
+
+    #パスワードリセット
+    public function resetPassword(ResetPasswordRequest $request){
+        $user=User::whereEmail($request->email)->first();
+        
+        #ユーザーが存在しない場合404を返す
+        if(!$user){
+            abort(404);
+        }
+       
+        #パスワードを保存
+        $user->password=Hash::make($request->password);
+
+        if($request->password != $request->confirmation_password){
+            return back()->withErrors(['confirmation_password'=>'パスワードが一致しません']);
+        }
+
+        $user->save();
+        return response()->json('パスワード変更しました。',Response::HTTP_OK);
+    }
 }
