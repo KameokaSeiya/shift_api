@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -14,7 +15,7 @@ class AuthController extends Controller
     public function register(Request $request) {
         $user=User::create([
             'name'=>$request->name,
-            'employee_number'=>$request->employee_number,
+            'email'=>$request->email,
             'password'=>Hash::make($request->password),
         ]);
         $json =[
@@ -26,8 +27,9 @@ class AuthController extends Controller
 
     #ログイン
     public function login(Request $request){
-        if (Auth::attempt(['employee_number'=>$request->employee_number,'password'=>$request->password])){
-            $user=User::whereEmployeeNumber($request->employee_number)->first();
+        
+        if (Auth::attempt(['email'=>$request->email,'password'=>$request->password])){
+            $user=User::whereEmail($request->email)->first();
             $user->tokens()->delete();
             $token=$user->createToken("login:user{$user->id}")->plainTextToken;
             #ログインが成功したらトークンを返す
