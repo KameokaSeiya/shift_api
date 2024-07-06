@@ -14,6 +14,7 @@ use App\Http\Controllers\AuthController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+#a
 Route::controller(AuthController::class)->group(function(){
     Route::post('/register','register');
     Route::post('/login','login');
